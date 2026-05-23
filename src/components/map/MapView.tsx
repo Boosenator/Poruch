@@ -23,7 +23,7 @@ export function MapView({ places, selectedId, onSelectPlace }: MapViewProps) {
 
   if (!hasToken) {
     return (
-      <div className="flex h-full min-h-[520px] items-center justify-center bg-[#E8E3DA] p-6 text-center">
+      <div className="flex h-full min-h-full items-center justify-center bg-[#E8E3DA] p-6 text-center">
         <div className="max-w-sm rounded-lg border border-neutral-200 bg-white p-5 shadow-sm">
           <MapPin className="mx-auto text-[#C1440E]" size={28} />
           <p className="mt-3 text-sm font-medium text-neutral-900">Mapbox токен не знайдено</p>
@@ -43,8 +43,12 @@ export function MapView({ places, selectedId, onSelectPlace }: MapViewProps) {
         zoom: 12,
       }}
       mapStyle="mapbox://styles/mapbox/light-v11"
-      style={{ width: "100%", height: "100%", minHeight: "520px" }}
+      style={{ width: "100%", height: "100%", minHeight: "100%" }}
       attributionControl={false}
+      dragPan
+      scrollZoom
+      touchZoomRotate
+      doubleClickZoom
     >
       <NavigationControl position="top-right" />
 

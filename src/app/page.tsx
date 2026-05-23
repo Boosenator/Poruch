@@ -26,6 +26,7 @@ import { MOCK_PLACES } from "@/lib/mock-places";
 import type { Place } from "@/lib/types";
 
 type ViewMode = "map" | "list" | "saved";
+type MobileSheetMode = "list" | "details";
 
 const languageLabels: Record<string, string> = {
   uk: "українська",
@@ -43,6 +44,7 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState(MOCK_PLACES[0].id);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [mobileSheetMode, setMobileSheetMode] = useState<MobileSheetMode>("list");
   const [savedIds, setSavedIds] = useState<string[]>(["ua-embassy", "nova-skola", "ua-school"]);
 
   const counts = useMemo(() => {
@@ -94,6 +96,16 @@ export default function Home() {
     }
   }
 
+  function openMobileList() {
+    setMobileSheetMode("list");
+    setMobilePanelOpen(true);
+  }
+
+  function openMobileDetails() {
+    setMobileSheetMode("details");
+    setMobilePanelOpen(true);
+  }
+
   return (
     <main className="min-h-screen bg-[#FAF9F7] text-neutral-900">
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#FAF9F7]/95 backdrop-blur">
@@ -135,7 +147,7 @@ export default function Home() {
             </button>
             <button
               type="button"
-              onClick={() => setMobilePanelOpen(true)}
+              onClick={openMobileList}
               className="flex size-10 items-center justify-center rounded-lg border border-neutral-200 bg-white lg:hidden"
             >
               <Menu size={18} />
@@ -220,7 +232,7 @@ export default function Home() {
           </div>
         </aside>
 
-        <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-[#E8E3DA] lg:min-h-0">
+        <section className="relative h-[calc(100svh-4rem)] overflow-hidden bg-[#E8E3DA] lg:h-auto lg:min-h-0">
           <div className="h-[calc(100svh-4rem)] lg:hidden">
             <MapView
               places={visiblePlaces}
@@ -259,7 +271,7 @@ export default function Home() {
                 />
               </label>
               <div className="mt-3">
-                <CategoryFilter
+                <MobileCategoryFilter
                   categories={CATEGORIES}
                   activeCategory={activeCategory}
                   onSelect={handleCategorySelect}
@@ -269,14 +281,14 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="absolute inset-x-3 bottom-3 z-20 lg:hidden">
+          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 lg:hidden">
             {!mobilePanelOpen && (
               <div className="space-y-2">
                 {selectedPlace && (
                   <button
                     type="button"
-                    onClick={() => setMobilePanelOpen(true)}
-                    className="w-full rounded-lg border border-neutral-200 bg-white p-3 text-left shadow-lg"
+                    onClick={openMobileDetails}
+                    className="pointer-events-auto w-full rounded-lg border border-neutral-200 bg-white p-3 text-left shadow-lg"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -291,8 +303,8 @@ export default function Home() {
                 )}
                 <button
                   type="button"
-                  onClick={() => setMobilePanelOpen(true)}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-semibold text-white shadow-lg"
+                  onClick={openMobileList}
+                  className="pointer-events-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-semibold text-white shadow-lg"
                 >
                   <List size={17} />
                   Показати {visiblePlaces.length} місць
@@ -303,15 +315,23 @@ export default function Home() {
             <div
               className={[
                 "max-h-[72svh] overflow-hidden rounded-t-2xl border border-neutral-200 bg-[#FAF9F7] shadow-2xl transition-transform duration-300",
-                mobilePanelOpen ? "translate-y-0" : "translate-y-[calc(100%+1rem)]",
+                mobilePanelOpen
+                  ? "pointer-events-auto translate-y-0"
+                  : "pointer-events-none translate-y-[calc(100%+1rem)]",
               ].join(" ")}
             >
               <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold text-neutral-950">
-                    {viewMode === "saved" ? "Збережені місця" : "Місця поруч"}
+                    {mobileSheetMode === "details"
+                      ? "Деталі місця"
+                      : viewMode === "saved"
+                        ? "Збережені місця"
+                        : "Місця поруч"}
                   </p>
-                  <p className="text-xs text-neutral-500">{visiblePlaces.length} результатів</p>
+                  <p className="text-xs text-neutral-500">
+                    {mobileSheetMode === "details" ? selectedPlace?.address : `${visiblePlaces.length} результатів`}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -323,18 +343,41 @@ export default function Home() {
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-1 border-b border-neutral-200 bg-white p-2 text-sm font-medium">
-                <MobileModeButton active={viewMode === "map"} onClick={() => setViewMode("map")}>
+                <MobileModeButton
+                  active={mobileSheetMode === "details"}
+                  onClick={() => setMobileSheetMode("details")}
+                >
+                  Деталі
+                </MobileModeButton>
+                <MobileModeButton
+                  active={mobileSheetMode === "list" && viewMode !== "saved"}
+                  onClick={() => {
+                    setMobileSheetMode("list");
+                    setViewMode("map");
+                  }}
+                >
                   Карта
                 </MobileModeButton>
-                <MobileModeButton active={viewMode === "list"} onClick={() => setViewMode("list")}>
-                  Список
-                </MobileModeButton>
-                <MobileModeButton active={viewMode === "saved"} onClick={() => setViewMode("saved")}>
+                <MobileModeButton
+                  active={mobileSheetMode === "list" && viewMode === "saved"}
+                  onClick={() => {
+                    setMobileSheetMode("list");
+                    setViewMode("saved");
+                  }}
+                >
                   Збережені
                 </MobileModeButton>
               </div>
               <div className="max-h-[52svh] overflow-y-auto p-3">
-                {visiblePlaces.length > 0 ? (
+                {mobileSheetMode === "details" && selectedPlace ? (
+                  <PlaceDetails
+                    place={selectedPlace}
+                    totalCount={visiblePlaces.length}
+                    isSaved={savedIds.includes(selectedPlace.id)}
+                    onToggleSaved={() => toggleSaved(selectedPlace.id)}
+                    compact
+                  />
+                ) : visiblePlaces.length > 0 ? (
                   <div className="space-y-3">
                     {visiblePlaces.map((place) => (
                       <PlaceListCard
@@ -420,6 +463,47 @@ function MobileModeButton({
     >
       {children}
     </button>
+  );
+}
+
+function MobileCategoryFilter({
+  categories,
+  activeCategory,
+  onSelect,
+  counts,
+}: {
+  categories: typeof CATEGORIES;
+  activeCategory: string;
+  onSelect: (categoryId: string) => void;
+  counts: Record<string, number>;
+}) {
+  return (
+    <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex w-max gap-2">
+        {categories.map((category) => {
+          const isActive = category.id === activeCategory;
+
+          return (
+            <button
+              key={category.id}
+              type="button"
+              onClick={() => onSelect(category.id)}
+              className={[
+                "flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium shadow-sm transition-colors",
+                isActive
+                  ? "bg-[#C1440E] text-white"
+                  : "border border-neutral-200 bg-white text-neutral-800",
+              ].join(" ")}
+            >
+              <span>{category.label}</span>
+              <span className={isActive ? "text-white/80" : "text-neutral-400"}>
+                {counts[category.id] ?? 0}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -569,18 +653,20 @@ function PlaceDetails({
   totalCount,
   isSaved,
   onToggleSaved,
+  compact = false,
 }: {
   place: Place;
   totalCount: number;
   isSaved: boolean;
   onToggleSaved: () => void;
+  compact?: boolean;
 }) {
   const category = getCategory(place.category);
 
   return (
     <div className="flex h-full flex-col">
-      <div className="p-5">
-        <div className="mb-5 h-36 rounded-lg bg-[#F2EFE9] p-4">
+      <div className={compact ? "p-0" : "p-5"}>
+        <div className={compact ? "mb-4 h-28 rounded-lg bg-[#F2EFE9] p-3" : "mb-5 h-36 rounded-lg bg-[#F2EFE9] p-4"}>
           <div className="flex h-full items-end justify-between rounded-md bg-white/60 p-4">
             <div>
               <p className="text-xs font-medium uppercase text-neutral-500">{category.label}</p>
@@ -676,9 +762,11 @@ function PlaceDetails({
         )}
       </div>
 
-      <div className="mt-auto border-t border-neutral-100 px-5 py-3 text-xs text-neutral-400">
-        Знайдено <strong className="text-neutral-600">{totalCount}</strong> місць у поточному фільтрі
-      </div>
+      {!compact && (
+        <div className="mt-auto border-t border-neutral-100 px-5 py-3 text-xs text-neutral-400">
+          Знайдено <strong className="text-neutral-600">{totalCount}</strong> місць у поточному фільтрі
+        </div>
+      )}
     </div>
   );
 }
