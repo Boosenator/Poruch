@@ -44,7 +44,7 @@ function getCategory(categoryId: string) {
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(MOCK_PLACES[0].id);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [mobileSheetMode, setMobileSheetMode] = useState<MobileSheetMode>("list");
@@ -283,7 +283,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className="pointer-events-none fixed inset-x-0 top-16 z-40 space-y-2 p-3 lg:hidden">
+          <div className="pointer-events-none fixed inset-x-0 top-16 z-50 space-y-2 p-3 lg:hidden">
             <div className="pointer-events-auto rounded-lg border border-neutral-200 bg-white/95 p-3 shadow-lg backdrop-blur">
               <label className="flex h-10 items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3">
                 <Search size={16} className="text-neutral-400" />
@@ -305,7 +305,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="pointer-events-none fixed inset-x-3 bottom-3 z-40 lg:hidden">
+          <div className="pointer-events-none fixed inset-x-3 bottom-3 z-30 lg:hidden">
             {!mobilePanelOpen && (
               <div className="space-y-2">
                 {selectedPlace && (
