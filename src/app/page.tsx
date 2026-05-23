@@ -8,17 +8,15 @@ import {
   ExternalLink,
   HeartHandshake,
   List,
-  MapIcon,
   MapPin,
-  Menu,
   Navigation,
   Phone,
   Search,
   ShieldCheck,
-  Sparkles,
   Star,
   X,
 } from "lucide-react";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import { MapView } from "@/components/map/MapView";
 import { CategoryFilter } from "@/components/search/CategoryFilter";
 import { CATEGORIES } from "@/lib/categories";
@@ -133,53 +131,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#FAF9F7] text-neutral-900">
-      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#FAF9F7]/95 backdrop-blur">
-        <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            onClick={() => setViewMode("map")}
-            className="flex items-center gap-3 text-left"
-          >
-            <div className="flex size-10 items-center justify-center rounded-full bg-[#C1440E] text-white">
-              <MapPin size={21} />
-            </div>
-            <div>
-              <p className="text-lg font-semibold leading-tight">Поруч</p>
-              <p className="text-xs text-neutral-500">Прага</p>
-            </div>
-          </button>
-
-          <nav className="hidden items-center rounded-full border border-neutral-200 bg-white p-1 text-sm font-medium text-neutral-600 lg:flex">
-            <ModeButton active={viewMode === "map"} onClick={() => setViewMode("map")} icon={<MapIcon size={15} />}>
-              Карта
-            </ModeButton>
-            <ModeButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={<List size={15} />}>
-              Список
-            </ModeButton>
-            <ModeButton
-              active={viewMode === "saved"}
-              onClick={() => setViewMode("saved")}
-              icon={<Bookmark size={15} />}
-            >
-              Збережені
-            </ModeButton>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <button className="hidden h-10 items-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-medium text-white transition-colors hover:bg-[#A33A0B] sm:flex">
-              <Sparkles size={16} />
-              Додати місце
-            </button>
-            <button
-              type="button"
-              onClick={openMobileList}
-              className="flex size-10 items-center justify-center rounded-lg border border-neutral-200 bg-white lg:hidden"
-            >
-              <Menu size={18} />
-            </button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader active="map" />
 
       <section className="grid min-h-[calc(100vh-4rem)] grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)_360px]">
         <aside className="hidden border-b border-neutral-200 bg-[#FAF9F7] px-5 py-5 lg:block lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
@@ -449,32 +401,6 @@ export default function Home() {
         </aside>
       </section>
     </main>
-  );
-}
-
-function ModeButton({
-  active,
-  onClick,
-  icon,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "flex h-9 items-center gap-2 rounded-full px-4 transition-colors",
-        active ? "bg-[#C1440E] text-white" : "hover:bg-neutral-100",
-      ].join(" ")}
-    >
-      {icon}
-      {children}
-    </button>
   );
 }
 
