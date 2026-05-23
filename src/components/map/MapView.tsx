@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import Map, { Marker, NavigationControl, Popup } from "react-map-gl/mapbox";
+import Map, { Layer, Marker, NavigationControl, Popup, Source } from "react-map-gl/mapbox";
 import type { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin } from "lucide-react";
@@ -15,6 +15,11 @@ const PRAGUE_CENTER = {
 
 const DEFAULT_FIT_PADDING = { top: 80, bottom: 80, left: 80, right: 80 };
 
+export type RouteGeometry = {
+  type: "LineString";
+  coordinates: [number, number][];
+};
+
 type MapViewProps = {
   places: Place[];
   selectedId?: string | null;
@@ -22,6 +27,7 @@ type MapViewProps = {
   onClearSelection?: () => void;
   showPopup?: boolean;
   fitPadding?: { top: number; bottom: number; left: number; right: number };
+  routeGeometry?: RouteGeometry | null;
 };
 
 export function MapView({
@@ -31,6 +37,7 @@ export function MapView({
   onClearSelection,
   showPopup = true,
   fitPadding = DEFAULT_FIT_PADDING,
+  routeGeometry,
 }: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
   const hasToken = Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
@@ -39,10 +46,31 @@ export function MapView({
     () => places.map((place) => `${place.id}:${place.lng}:${place.lat}`).join("|"),
     [places],
   );
+  const routeKey = useMemo(
+    () => routeGeometry?.coordinates.map(([lng, lat]) => `${lng}:${lat}`).join("|") ?? "",
+    [routeGeometry],
+  );
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !hasToken) return;
+
+    if (routeGeometry?.coordinates.length) {
+      const lngs = routeGeometry.coordinates.map(([lng]) => lng);
+      const lats = routeGeometry.coordinates.map(([, lat]) => lat);
+      map.fitBounds(
+        [
+          [Math.min(...lngs), Math.min(...lats)],
+          [Math.max(...lngs), Math.max(...lats)],
+        ],
+        {
+          padding: fitPadding,
+          maxZoom: 15,
+          duration: 700,
+        },
+      );
+      return;
+    }
 
     if (places.length === 0) {
       map.flyTo({ center: [PRAGUE_CENTER.longitude, PRAGUE_CENTER.latitude], zoom: 11, duration: 500 });
@@ -67,7 +95,7 @@ export function MapView({
         duration: 600,
       },
     );
-  }, [boundsKey, fitPadding, hasToken, places]);
+  }, [boundsKey, fitPadding, hasToken, places, routeGeometry, routeKey]);
 
   if (!hasToken) {
     return (
@@ -100,6 +128,32 @@ export function MapView({
       doubleClickZoom
     >
       <NavigationControl position="top-right" />
+
+      {routeGeometry && (
+        <Source
+          id="active-route"
+          type="geojson"
+          data={{
+            type: "Feature",
+            properties: {},
+            geometry: routeGeometry,
+          }}
+        >
+          <Layer
+            id="active-route-line"
+            type="line"
+            paint={{
+              "line-color": "#C1440E",
+              "line-width": 5,
+              "line-opacity": 0.9,
+            }}
+            layout={{
+              "line-cap": "round",
+              "line-join": "round",
+            }}
+          />
+        </Source>
+      )}
 
       {showPopup && selectedPlace && (
         <Popup

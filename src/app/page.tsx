@@ -17,7 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { MapView } from "@/components/map/MapView";
+import { MapView, type RouteGeometry } from "@/components/map/MapView";
 import { CategoryFilter } from "@/components/search/CategoryFilter";
 import { CATEGORIES } from "@/lib/categories";
 import { MOCK_PLACES } from "@/lib/mock-places";
@@ -25,6 +25,16 @@ import type { Place } from "@/lib/types";
 
 type ViewMode = "map" | "list" | "saved";
 type MobileSheetMode = "list" | "details";
+type ActiveRoute = {
+  placeId: string;
+  geometry: RouteGeometry;
+  distanceMeters: number;
+  durationSeconds: number;
+};
+type RouteError = {
+  placeId: string;
+  message: string;
+};
 
 const MOBILE_MAP_PADDING = { top: 220, bottom: 96, left: 48, right: 48 };
 const DESKTOP_MAP_PADDING = { top: 80, bottom: 80, left: 80, right: 80 };
@@ -47,6 +57,9 @@ export default function Home() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [mobileSheetMode, setMobileSheetMode] = useState<MobileSheetMode>("list");
   const [savedIds, setSavedIds] = useState<string[]>(["ua-embassy", "nova-skola", "ua-school"]);
+  const [activeRoute, setActiveRoute] = useState<ActiveRoute | null>(null);
+  const [routeLoadingId, setRouteLoadingId] = useState<string | null>(null);
+  const [routeError, setRouteError] = useState<RouteError | null>(null);
 
   const counts = useMemo(() => {
     const totals: Record<string, number> = { all: MOCK_PLACES.length };
@@ -89,6 +102,7 @@ export default function Home() {
     setViewMode("map");
     setSelectedId(null);
     setMobilePanelOpen(false);
+    setActiveRoute(null);
   }
 
   function handleQueryChange(value: string) {
@@ -96,6 +110,7 @@ export default function Home() {
     setViewMode("map");
     setSelectedId(null);
     setMobilePanelOpen(false);
+    setActiveRoute(null);
   }
 
   function toggleSaved(placeId: string) {
@@ -127,6 +142,75 @@ export default function Home() {
     setSelectedId(place.id);
     setMobilePanelOpen(false);
     setMobileSheetMode("details");
+  }
+
+  async function buildRouteOnMap(place: Place) {
+    if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
+      setRouteError({ placeId: place.id, message: "Mapbox токен не знайдено." });
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setRouteError({ placeId: place.id, message: "Браузер не підтримує геолокацію." });
+      return;
+    }
+
+    setRouteLoadingId(place.id);
+    setRouteError(null);
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        });
+      });
+      const originLng = position.coords.longitude;
+      const originLat = position.coords.latitude;
+      const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+      const url = new URL(
+        `https://api.mapbox.com/directions/v5/mapbox/walking/${originLng},${originLat};${place.lng},${place.lat}`,
+      );
+      url.searchParams.set("geometries", "geojson");
+      url.searchParams.set("overview", "full");
+      url.searchParams.set("language", "uk");
+      url.searchParams.set("access_token", token);
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error("route-request-failed");
+      }
+
+      const data = (await response.json()) as {
+        routes?: Array<{
+          geometry?: RouteGeometry;
+          distance?: number;
+          duration?: number;
+        }>;
+      };
+      const route = data.routes?.[0];
+      if (!route?.geometry?.coordinates.length) {
+        throw new Error("route-not-found");
+      }
+
+      setActiveRoute({
+        placeId: place.id,
+        geometry: route.geometry,
+        distanceMeters: route.distance ?? 0,
+        durationSeconds: route.duration ?? 0,
+      });
+      setSelectedId(place.id);
+      setViewMode("map");
+      setMobilePanelOpen(false);
+    } catch {
+      setRouteError({
+        placeId: place.id,
+        message: "Не вдалося побудувати маршрут. Перевір дозвіл на геолокацію або відкрий у стандартній апці.",
+      });
+    } finally {
+      setRouteLoadingId(null);
+    }
   }
 
   return (
@@ -218,6 +302,7 @@ export default function Home() {
               onClearSelection={() => setSelectedId(null)}
               showPopup={false}
               fitPadding={MOBILE_MAP_PADDING}
+              routeGeometry={activeRoute?.geometry}
             />
           </div>
 
@@ -237,6 +322,7 @@ export default function Home() {
                 onSelectPlace={(place) => setSelectedId(place.id)}
                 onClearSelection={() => setSelectedId(null)}
                 fitPadding={DESKTOP_MAP_PADDING}
+                routeGeometry={activeRoute?.geometry}
               />
             )}
           </div>
@@ -360,6 +446,11 @@ export default function Home() {
                     place={selectedPlace}
                     isSaved={savedIds.includes(selectedPlace.id)}
                     onToggleSaved={() => toggleSaved(selectedPlace.id)}
+                    onBuildRoute={buildRouteOnMap}
+                    onClearRoute={() => setActiveRoute(null)}
+                    routeLoading={routeLoadingId === selectedPlace.id}
+                    routeActive={activeRoute?.placeId === selectedPlace.id}
+                    routeError={routeError?.placeId === selectedPlace.id ? routeError.message : null}
                   />
                 ) : visiblePlaces.length > 0 ? (
                   <div className="space-y-3">
@@ -389,6 +480,11 @@ export default function Home() {
               totalCount={visiblePlaces.length}
               isSaved={savedIds.includes(selectedPlace.id)}
               onToggleSaved={() => toggleSaved(selectedPlace.id)}
+              onBuildRoute={buildRouteOnMap}
+              onClearRoute={() => setActiveRoute(null)}
+              routeLoading={routeLoadingId === selectedPlace.id}
+              routeActive={activeRoute?.placeId === selectedPlace.id}
+              routeError={routeError?.placeId === selectedPlace.id ? routeError.message : null}
             />
           ) : (
             <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center text-neutral-400">
@@ -610,10 +706,20 @@ function MobilePlaceDetails({
   place,
   isSaved,
   onToggleSaved,
+  onBuildRoute,
+  onClearRoute,
+  routeLoading,
+  routeActive,
+  routeError,
 }: {
   place: Place;
   isSaved: boolean;
   onToggleSaved: () => void;
+  onBuildRoute: (place: Place) => void;
+  onClearRoute: () => void;
+  routeLoading: boolean;
+  routeActive: boolean;
+  routeError: string | null;
 }) {
   const category = getCategory(place.category);
 
@@ -688,15 +794,20 @@ function MobilePlaceDetails({
           <Phone size={16} />
           Дзвінок
         </a>
-        <a
-          href={`https://maps.google.com/?q=${place.lat},${place.lng}`}
-          target="_blank"
-          className="flex h-11 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 text-sm font-medium"
-        >
-          <Navigation size={16} />
-          Маршрут
-        </a>
+        <RouteActions
+          place={place}
+          onBuildRoute={onBuildRoute}
+          onClearRoute={onClearRoute}
+          isLoading={routeLoading}
+          isActive={routeActive}
+        />
       </div>
+
+      {routeError && (
+        <p className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700">
+          {routeError}
+        </p>
+      )}
 
       {place.website && (
         <a
@@ -717,11 +828,21 @@ function PlaceDetails({
   totalCount,
   isSaved,
   onToggleSaved,
+  onBuildRoute,
+  onClearRoute,
+  routeLoading,
+  routeActive,
+  routeError,
 }: {
   place: Place;
   totalCount: number;
   isSaved: boolean;
   onToggleSaved: () => void;
+  onBuildRoute: (place: Place) => void;
+  onClearRoute: () => void;
+  routeLoading: boolean;
+  routeActive: boolean;
+  routeError: string | null;
 }) {
   const category = getCategory(place.category);
 
@@ -802,15 +923,20 @@ function PlaceDetails({
             <Phone size={16} />
             Дзвінок
           </a>
-          <a
-            href={`https://maps.google.com/?q=${place.lat},${place.lng}`}
-            target="_blank"
-            className="flex h-11 items-center justify-center gap-2 rounded-lg border border-neutral-200 px-4 text-sm font-medium transition-colors hover:bg-neutral-100"
-          >
-            <Navigation size={16} />
-            Маршрут
-          </a>
+          <RouteActions
+            place={place}
+            onBuildRoute={onBuildRoute}
+            onClearRoute={onClearRoute}
+            isLoading={routeLoading}
+            isActive={routeActive}
+          />
         </div>
+
+        {routeError && (
+          <p className="mt-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs leading-5 text-red-700">
+            {routeError}
+          </p>
+        )}
 
         {place.website && (
           <a
@@ -829,6 +955,110 @@ function PlaceDetails({
       </div>
     </div>
   );
+}
+
+function RouteActions({
+  place,
+  onBuildRoute,
+  onClearRoute,
+  isLoading,
+  isActive,
+}: {
+  place: Place;
+  onBuildRoute: (place: Place) => void;
+  onClearRoute: () => void;
+  isLoading: boolean;
+  isActive: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const urls = getRouteUrls(place);
+
+  function handleBuildRoute() {
+    setOpen(false);
+    onBuildRoute(place);
+  }
+
+  function handleClearRoute() {
+    setOpen(false);
+    onClearRoute();
+  }
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className={[
+          "flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 text-sm font-medium transition-colors hover:bg-neutral-100",
+          isActive ? "border-[#C1440E] bg-[#FDF0EB] text-[#C1440E]" : "",
+        ].join(" ")}
+        aria-expanded={open}
+      >
+        <Navigation size={16} />
+        {isLoading ? "Будуємо..." : "Маршрут"}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-lg border border-neutral-200 bg-white text-sm shadow-xl">
+          {isActive ? (
+            <button
+              type="button"
+              onClick={handleClearRoute}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left font-medium text-[#C1440E] hover:bg-neutral-50"
+            >
+              <X size={15} />
+              Сховати маршрут
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleBuildRoute}
+              disabled={isLoading}
+              className="flex w-full items-center gap-2 px-3 py-2.5 text-left font-medium text-[#C1440E] hover:bg-neutral-50 disabled:opacity-60"
+            >
+              <MapPin size={15} />
+              Показати на карті
+            </button>
+          )}
+          <a
+            href={urls.google}
+            target="_blank"
+            className="flex items-center gap-2 px-3 py-2.5 hover:bg-neutral-50"
+          >
+            <ExternalLink size={15} />
+            Google Maps
+          </a>
+          <a
+            href={urls.apple}
+            target="_blank"
+            className="flex items-center gap-2 px-3 py-2.5 hover:bg-neutral-50"
+          >
+            <ExternalLink size={15} />
+            Apple Maps
+          </a>
+          <a
+            href={urls.mapy}
+            target="_blank"
+            className="flex items-center gap-2 px-3 py-2.5 hover:bg-neutral-50"
+          >
+            <ExternalLink size={15} />
+            Mapy.cz
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getRouteUrls(place: Place) {
+  const destination = `${place.lat},${place.lng}`;
+  const encodedDestination = encodeURIComponent(destination);
+
+  return {
+    google: `https://www.google.com/maps/dir/?api=1&destination=${encodedDestination}`,
+    apple: `https://maps.apple.com/?daddr=${encodedDestination}`,
+    mapy: `https://mapy.cz/zakladni?x=${place.lng}&y=${place.lat}&z=15&q=${encodedDestination}`,
+  };
 }
 
 function InfoRow({ icon, text }: { icon: React.ReactNode; text: string }) {
