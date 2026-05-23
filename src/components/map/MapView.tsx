@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import Map, { Marker, NavigationControl, Popup } from "react-map-gl/mapbox";
+import type { MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
@@ -11,15 +13,61 @@ const PRAGUE_CENTER = {
   latitude: 50.0755,
 };
 
+const DEFAULT_FIT_PADDING = { top: 80, bottom: 80, left: 80, right: 80 };
+
 type MapViewProps = {
   places: Place[];
-  selectedId?: string;
+  selectedId?: string | null;
   onSelectPlace: (place: Place) => void;
+  onClearSelection?: () => void;
+  showPopup?: boolean;
+  fitPadding?: { top: number; bottom: number; left: number; right: number };
 };
 
-export function MapView({ places, selectedId, onSelectPlace }: MapViewProps) {
+export function MapView({
+  places,
+  selectedId,
+  onSelectPlace,
+  onClearSelection,
+  showPopup = true,
+  fitPadding = DEFAULT_FIT_PADDING,
+}: MapViewProps) {
+  const mapRef = useRef<MapRef>(null);
   const hasToken = Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
   const selectedPlace = places.find((place) => place.id === selectedId);
+  const boundsKey = useMemo(
+    () => places.map((place) => `${place.id}:${place.lng}:${place.lat}`).join("|"),
+    [places],
+  );
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !hasToken) return;
+
+    if (places.length === 0) {
+      map.flyTo({ center: [PRAGUE_CENTER.longitude, PRAGUE_CENTER.latitude], zoom: 11, duration: 500 });
+      return;
+    }
+
+    if (places.length === 1) {
+      map.flyTo({ center: [places[0].lng, places[0].lat], zoom: 12.5, duration: 500 });
+      return;
+    }
+
+    const lngs = places.map((place) => place.lng);
+    const lats = places.map((place) => place.lat);
+    map.fitBounds(
+      [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)],
+      ],
+      {
+        padding: fitPadding,
+        maxZoom: 13,
+        duration: 600,
+      },
+    );
+  }, [boundsKey, fitPadding, hasToken, places]);
 
   if (!hasToken) {
     return (
@@ -37,6 +85,7 @@ export function MapView({ places, selectedId, onSelectPlace }: MapViewProps) {
 
   return (
     <Map
+      ref={mapRef}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       initialViewState={{
         ...PRAGUE_CENTER,
@@ -52,13 +101,14 @@ export function MapView({ places, selectedId, onSelectPlace }: MapViewProps) {
     >
       <NavigationControl position="top-right" />
 
-      {selectedPlace && (
+      {showPopup && selectedPlace && (
         <Popup
           longitude={selectedPlace.lng}
           latitude={selectedPlace.lat}
           anchor="top"
-          closeButton={false}
+          closeButton
           closeOnClick={false}
+          onClose={onClearSelection}
           offset={16}
           className="poruch-map-popup"
         >

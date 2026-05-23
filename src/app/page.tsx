@@ -28,6 +28,9 @@ import type { Place } from "@/lib/types";
 type ViewMode = "map" | "list" | "saved";
 type MobileSheetMode = "list" | "details";
 
+const MOBILE_MAP_PADDING = { top: 150, bottom: 150, left: 48, right: 48 };
+const DESKTOP_MAP_PADDING = { top: 80, bottom: 80, left: 80, right: 80 };
+
 const languageLabels: Record<string, string> = {
   uk: "українська",
   cs: "чеська",
@@ -41,7 +44,7 @@ function getCategory(categoryId: string) {
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(MOCK_PLACES[0].id);
+  const [selectedId, setSelectedId] = useState<string | null>(MOCK_PLACES[0].id);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [mobileSheetMode, setMobileSheetMode] = useState<MobileSheetMode>("list");
@@ -78,7 +81,7 @@ export default function Home() {
   }, [filteredPlaces, savedIds, viewMode]);
 
   const selectedPlace =
-    filteredPlaces.find((place) => place.id === selectedId) ?? filteredPlaces[0] ?? null;
+    selectedId ? filteredPlaces.find((place) => place.id === selectedId) ?? null : null;
 
   const verifiedCount = visiblePlaces.filter((place) => place.is_verified).length;
   const freeCount = visiblePlaces.filter((place) => place.is_free).length;
@@ -86,13 +89,15 @@ export default function Home() {
   function handleCategorySelect(categoryId: string) {
     setActiveCategory(categoryId);
     setViewMode("map");
-    const nextPlace = MOCK_PLACES.find((place) => categoryId === "all" || place.category === categoryId);
-    if (nextPlace) setSelectedId(nextPlace.id);
+    setSelectedId(null);
+    setMobilePanelOpen(false);
   }
 
   function handleQueryChange(value: string) {
     setQuery(value);
     setViewMode("map");
+    setSelectedId(null);
+    setMobilePanelOpen(false);
   }
 
   function toggleSaved(placeId: string) {
@@ -115,6 +120,7 @@ export default function Home() {
   }
 
   function openMobileDetails() {
+    if (!selectedPlace) return;
     setMobileSheetMode("details");
     setMobilePanelOpen(true);
   }
@@ -249,8 +255,11 @@ export default function Home() {
           <div className="h-[calc(100svh-4rem)] lg:hidden">
             <MapView
               places={filteredPlaces}
-              selectedId={selectedPlace?.id}
+              selectedId={selectedId}
               onSelectPlace={(place) => setSelectedId(place.id)}
+              onClearSelection={() => setSelectedId(null)}
+              showPopup={false}
+              fitPadding={MOBILE_MAP_PADDING}
             />
           </div>
 
@@ -266,8 +275,10 @@ export default function Home() {
             ) : (
               <MapView
                 places={visiblePlaces}
-                selectedId={selectedPlace?.id}
+                selectedId={selectedId}
                 onSelectPlace={(place) => setSelectedId(place.id)}
+                onClearSelection={() => setSelectedId(null)}
+                fitPadding={DESKTOP_MAP_PADDING}
               />
             )}
           </div>
@@ -298,11 +309,8 @@ export default function Home() {
             {!mobilePanelOpen && (
               <div className="space-y-2">
                 {selectedPlace && (
-                  <button
-                    type="button"
-                    onClick={openMobileDetails}
-                    className="pointer-events-auto w-full rounded-lg border border-neutral-200 bg-white p-3 text-left shadow-lg"
-                  >
+                  <div className="pointer-events-auto flex w-full items-start gap-2 rounded-lg border border-neutral-200 bg-white p-3 shadow-lg">
+                    <button type="button" onClick={openMobileDetails} className="min-w-0 flex-1 text-left">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate font-semibold text-neutral-950">{selectedPlace.name}</p>
@@ -312,7 +320,16 @@ export default function Home() {
                         Деталі
                       </span>
                     </div>
-                  </button>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(null)}
+                      className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-500"
+                      aria-label="Закрити обране місце"
+                    >
+                      <X size={15} />
+                    </button>
+                  </div>
                 )}
                 <button
                   type="button"
