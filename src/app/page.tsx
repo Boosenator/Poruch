@@ -400,12 +400,10 @@ export default function Home() {
               </div>
               <div className="max-h-[52svh] overflow-y-auto p-3">
                 {mobileSheetMode === "details" && selectedPlace ? (
-                  <PlaceDetails
+                  <MobilePlaceDetails
                     place={selectedPlace}
-                    totalCount={visiblePlaces.length}
                     isSaved={savedIds.includes(selectedPlace.id)}
                     onToggleSaved={() => toggleSaved(selectedPlace.id)}
-                    compact
                   />
                 ) : visiblePlaces.length > 0 ? (
                   <div className="space-y-3">
@@ -678,25 +676,129 @@ function EmptyState({ mode }: { mode: ViewMode }) {
   );
 }
 
+function MobilePlaceDetails({
+  place,
+  isSaved,
+  onToggleSaved,
+}: {
+  place: Place;
+  isSaved: boolean;
+  onToggleSaved: () => void;
+}) {
+  const category = getCategory(place.category);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-start gap-3">
+        <span
+          className="flex size-10 shrink-0 items-center justify-center rounded-full text-white shadow-sm"
+          style={{ backgroundColor: category.color }}
+        >
+          <MapPin size={18} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium uppercase text-neutral-500">{category.label}</p>
+          <h2 className="mt-1 text-lg font-semibold leading-6 text-neutral-950">{place.name}</h2>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {place.is_verified && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#C1440E] px-2 py-0.5 text-xs font-medium text-white">
+                <Check size={12} />
+                Verified
+              </span>
+            )}
+            {place.is_free && (
+              <span className="rounded-md bg-emerald-50 px-2 py-1 text-xs text-emerald-700">
+                безкоштовно
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 text-xs text-neutral-500">
+              <Star className="text-amber-400" size={13} fill="currentColor" />
+              {place.rating?.toFixed(1) ?? "4.8"} · {place.review_count ?? 0} відгуків
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onToggleSaved}
+          className={[
+            "flex size-10 shrink-0 items-center justify-center rounded-lg border transition-colors",
+            isSaved ? "border-[#C1440E] bg-[#FDF0EB] text-[#C1440E]" : "border-neutral-200 bg-white",
+          ].join(" ")}
+          aria-label={isSaved ? "Прибрати зі збережених" : "Зберегти місце"}
+        >
+          <Bookmark size={18} fill={isSaved ? "currentColor" : "none"} />
+        </button>
+      </div>
+
+      <p className="text-sm leading-6 text-neutral-600">{place.description}</p>
+
+      <div className="space-y-2 rounded-lg border border-neutral-200 bg-white p-3">
+        <InfoRow icon={<MapPin size={16} />} text={place.address ?? "Адресу уточнюємо"} />
+        {place.phone && <InfoRow icon={<Phone size={16} />} text={place.phone} />}
+        <InfoRow icon={<Clock3 size={16} />} text={place.hours?.today ?? "Графік уточнюємо"} />
+        <InfoRow
+          icon={<ShieldCheck size={16} />}
+          text={place.languages.map((lang) => languageLabels[lang] ?? lang).join(", ")}
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {place.tags.map((tag) => (
+          <span key={tag} className="rounded-md bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <a
+          href={place.phone ? `tel:${place.phone}` : "#"}
+          className="flex h-11 items-center justify-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-medium text-white"
+        >
+          <Phone size={16} />
+          Дзвінок
+        </a>
+        <a
+          href={`https://maps.google.com/?q=${place.lat},${place.lng}`}
+          target="_blank"
+          className="flex h-11 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-4 text-sm font-medium"
+        >
+          <Navigation size={16} />
+          Маршрут
+        </a>
+      </div>
+
+      {place.website && (
+        <a
+          href={place.website}
+          target="_blank"
+          className="flex h-11 items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white text-sm font-medium"
+        >
+          <ExternalLink size={16} />
+          Відкрити сайт
+        </a>
+      )}
+    </div>
+  );
+}
+
 function PlaceDetails({
   place,
   totalCount,
   isSaved,
   onToggleSaved,
-  compact = false,
 }: {
   place: Place;
   totalCount: number;
   isSaved: boolean;
   onToggleSaved: () => void;
-  compact?: boolean;
 }) {
   const category = getCategory(place.category);
 
   return (
     <div className="flex h-full flex-col">
-      <div className={compact ? "p-0" : "p-5"}>
-        <div className={compact ? "mb-4 h-28 rounded-lg bg-[#F2EFE9] p-3" : "mb-5 h-36 rounded-lg bg-[#F2EFE9] p-4"}>
+      <div className="p-5">
+        <div className="mb-5 h-36 rounded-lg bg-[#F2EFE9] p-4">
           <div className="flex h-full items-end justify-between rounded-md bg-white/60 p-4">
             <div>
               <p className="text-xs font-medium uppercase text-neutral-500">{category.label}</p>
@@ -792,11 +894,9 @@ function PlaceDetails({
         )}
       </div>
 
-      {!compact && (
-        <div className="mt-auto border-t border-neutral-100 px-5 py-3 text-xs text-neutral-400">
-          Знайдено <strong className="text-neutral-600">{totalCount}</strong> місць у поточному фільтрі
-        </div>
-      )}
+      <div className="mt-auto border-t border-neutral-100 px-5 py-3 text-xs text-neutral-400">
+        Знайдено <strong className="text-neutral-600">{totalCount}</strong> місць у поточному фільтрі
+      </div>
     </div>
   );
 }
