@@ -6,7 +6,6 @@ import {
   Check,
   Clock3,
   ExternalLink,
-  LocateFixed,
   MapPin,
   Menu,
   Navigation,
@@ -16,8 +15,9 @@ import {
   Sparkles,
   Star,
 } from "lucide-react";
-import { CATEGORIES } from "@/lib/categories";
+import { MapView } from "@/components/map/MapView";
 import { CategoryFilter } from "@/components/search/CategoryFilter";
+import { CATEGORIES } from "@/lib/categories";
 import type { Place } from "@/lib/types";
 
 const places: Place[] = [
@@ -193,16 +193,6 @@ function getCategory(categoryId: string) {
   return CATEGORIES.find((category) => category.id === categoryId) ?? CATEGORIES[0];
 }
 
-function getPinPosition(place: Place) {
-  const left = ((place.lng - 14.36) / (14.48 - 14.36)) * 100;
-  const top = 100 - ((place.lat - 50.04) / (50.12 - 50.04)) * 100;
-
-  return {
-    left: `${Math.min(90, Math.max(10, left))}%`,
-    top: `${Math.min(82, Math.max(12, top))}%`,
-  };
-}
-
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [query, setQuery] = useState("");
@@ -366,41 +356,11 @@ export default function Home() {
         </aside>
 
         <section className="relative min-h-[520px] overflow-hidden bg-[#E8E3DA] lg:min-h-0">
-          <div className="absolute inset-0 map-texture" />
-          <div className="absolute left-6 top-6 z-10 flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm font-medium shadow-sm">
-            <LocateFixed size={16} className="text-[#C1440E]" />
-            Praha centrum
-          </div>
-          <div className="absolute bottom-6 left-6 z-10 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600 shadow-sm">
-            Mapbox підключимо після токена
-          </div>
-
-          <div className="absolute left-[8%] top-[48%] h-5 w-[88%] -rotate-12 rounded-full bg-[#B8D7DC]/80" />
-          <div className="absolute left-[16%] top-[18%] h-[76%] w-4 rotate-[28deg] rounded-full bg-[#B8D7DC]/70" />
-          <div className="absolute left-[22%] top-[26%] h-2 w-[64%] rotate-6 rounded-full bg-white/70" />
-          <div className="absolute left-[18%] top-[62%] h-2 w-[58%] -rotate-[22deg] rounded-full bg-white/70" />
-          <div className="absolute left-[46%] top-[10%] h-[78%] w-2 rotate-2 rounded-full bg-white/60" />
-
-          {filteredPlaces.map((place) => {
-            const category = getCategory(place.category);
-            const isSelected = selectedPlace?.id === place.id;
-
-            return (
-              <button
-                key={place.id}
-                type="button"
-                onClick={() => setSelectedId(place.id)}
-                className={[
-                  "absolute z-20 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white text-white shadow-lg transition-transform hover:scale-110",
-                  isSelected ? "size-12 scale-110" : "size-9",
-                ].join(" ")}
-                style={{ ...getPinPosition(place), backgroundColor: category.color }}
-                aria-label={place.name}
-              >
-                <MapPin size={isSelected ? 22 : 17} fill="currentColor" />
-              </button>
-            );
-          })}
+          <MapView
+            places={filteredPlaces}
+            selectedId={selectedPlace?.id}
+            onSelectPlace={(place) => setSelectedId(place.id)}
+          />
         </section>
 
         <aside className="border-t border-neutral-200 bg-white lg:border-l lg:border-t-0">
@@ -453,7 +413,9 @@ function PlaceDetails({ place, totalCount }: { place: Place; totalCount: number 
             <div className="mt-2 flex items-center gap-1 text-sm">
               <Star className="text-amber-400" size={15} fill="currentColor" />
               <span className="font-medium">4.8</span>
-              <span className="text-neutral-400">({Math.max(7, Math.round(place.saves_count / 8))} відгуків)</span>
+              <span className="text-neutral-400">
+                ({Math.max(7, Math.round(place.saves_count / 8))} відгуків)
+              </span>
             </div>
           </div>
           <button className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-neutral-200 hover:bg-neutral-100">
