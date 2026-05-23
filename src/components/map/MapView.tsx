@@ -110,7 +110,7 @@ export function MapView({
           closeOnClick={false}
           onClose={onClearSelection}
           offset={16}
-          className="poruch-map-popup"
+          className="poruch-map-popup hidden lg:block"
         >
           <button
             type="button"

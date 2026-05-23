@@ -125,6 +125,12 @@ export default function Home() {
     setMobilePanelOpen(true);
   }
 
+  function selectMobilePin(place: Place) {
+    setSelectedId(place.id);
+    setMobilePanelOpen(false);
+    setMobileSheetMode("details");
+  }
+
   return (
     <main className="min-h-screen bg-[#FAF9F7] text-neutral-900">
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#FAF9F7]/95 backdrop-blur">
@@ -256,7 +262,7 @@ export default function Home() {
             <MapView
               places={filteredPlaces}
               selectedId={selectedId}
-              onSelectPlace={(place) => setSelectedId(place.id)}
+              onSelectPlace={selectMobilePin}
               onClearSelection={() => setSelectedId(null)}
               showPopup={false}
               fitPadding={MOBILE_MAP_PADDING}
@@ -313,11 +319,11 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="pointer-events-none fixed inset-x-3 bottom-3 z-30 lg:hidden">
+          <div className="pointer-events-none fixed inset-x-3 bottom-3 z-50 lg:hidden">
             {!mobilePanelOpen && (
               <div className="space-y-2">
                 {selectedPlace && (
-                  <div className="pointer-events-auto flex w-full items-start gap-2 rounded-lg border border-neutral-200 bg-white p-3 shadow-lg">
+                  <div className="pointer-events-auto flex w-full items-start gap-2 rounded-lg border border-neutral-200 bg-white p-3 shadow-2xl">
                     <button type="button" onClick={openMobileDetails} className="min-w-0 flex-1 text-left">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
