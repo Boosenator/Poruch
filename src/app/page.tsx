@@ -28,7 +28,7 @@ import type { Place } from "@/lib/types";
 type ViewMode = "map" | "list" | "saved";
 type MobileSheetMode = "list" | "details";
 
-const MOBILE_MAP_PADDING = { top: 150, bottom: 150, left: 48, right: 48 };
+const MOBILE_MAP_PADDING = { top: 220, bottom: 96, left: 48, right: 48 };
 const DESKTOP_MAP_PADDING = { top: 80, bottom: 80, left: 80, right: 80 };
 
 const languageLabels: Record<string, string> = {
@@ -302,6 +302,14 @@ export default function Home() {
                   counts={counts}
                 />
               </div>
+              <button
+                type="button"
+                onClick={openMobileList}
+                className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-semibold text-white shadow-sm"
+              >
+                <List size={17} />
+                Показати {filteredPlaces.length} місць
+              </button>
             </div>
           </div>
 
@@ -331,14 +339,6 @@ export default function Home() {
                     </button>
                   </div>
                 )}
-                <button
-                  type="button"
-                  onClick={openMobileList}
-                  className="pointer-events-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-semibold text-white shadow-lg"
-                >
-                  <List size={17} />
-                  Показати {filteredPlaces.length} місць
-                </button>
               </div>
             )}
 
