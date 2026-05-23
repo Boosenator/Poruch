@@ -271,10 +271,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="pointer-events-none fixed inset-x-3 bottom-3 z-50 lg:hidden">
-            {!mobilePanelOpen && (
-              <div className="space-y-2">
-                {selectedPlace && (
+          {!mobilePanelOpen && selectedPlace && (
+            <div className="pointer-events-none fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-50 lg:hidden">
                   <div className="pointer-events-auto flex w-full items-start gap-2 rounded-lg border border-neutral-200 bg-white p-3 shadow-2xl">
                     <button type="button" onClick={openMobileDetails} className="min-w-0 flex-1 text-left">
                     <div className="flex items-start justify-between gap-3">
@@ -296,16 +294,16 @@ export default function Home() {
                       <X size={15} />
                     </button>
                   </div>
-                )}
-              </div>
-            )}
+            </div>
+          )}
 
+          <div className="pointer-events-none fixed inset-x-3 bottom-0 z-50 lg:hidden">
             <div
               className={[
                 "max-h-[72svh] overflow-hidden rounded-t-2xl border border-neutral-200 bg-[#FAF9F7] shadow-2xl transition-transform duration-300",
                 mobilePanelOpen
                   ? "pointer-events-auto translate-y-0"
-                  : "pointer-events-none translate-y-[calc(100%+1rem)]",
+                  : "pointer-events-none translate-y-[calc(100%+2rem)]",
               ].join(" ")}
             >
               <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
