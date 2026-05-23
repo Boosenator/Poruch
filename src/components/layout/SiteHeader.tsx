@@ -3,6 +3,7 @@ import { Bookmark, List, MapIcon, MapPin, Sparkles } from "lucide-react";
 
 type SiteHeaderProps = {
   active?: "map" | "list" | "saved" | "suggest";
+  showMobileNav?: boolean;
 };
 
 const navItems = [
@@ -11,7 +12,7 @@ const navItems = [
   { id: "saved", label: "Збережені", href: "/saved", icon: Bookmark },
 ] as const;
 
-export function SiteHeader({ active = "map" }: SiteHeaderProps) {
+export function SiteHeader({ active = "map", showMobileNav = true }: SiteHeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#FAF9F7]/95 backdrop-blur">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -60,26 +61,28 @@ export function SiteHeader({ active = "map" }: SiteHeaderProps) {
         </Link>
       </div>
 
-      <nav className="grid grid-cols-3 border-t border-neutral-200 bg-white text-sm font-medium text-neutral-600 sm:hidden">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = active === item.id;
+      {showMobileNav && (
+        <nav className="grid grid-cols-3 border-t border-neutral-200 bg-white text-sm font-medium text-neutral-600 sm:hidden">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = active === item.id;
 
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={[
-                "flex h-11 items-center justify-center gap-2",
-                isActive ? "text-[#C1440E]" : "text-neutral-600",
-              ].join(" ")}
-            >
-              <Icon size={15} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+            return (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={[
+                  "flex h-11 items-center justify-center gap-2",
+                  isActive ? "text-[#C1440E]" : "text-neutral-600",
+                ].join(" ")}
+              >
+                <Icon size={15} />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </header>
   );
 }

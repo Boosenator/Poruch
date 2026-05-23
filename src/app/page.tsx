@@ -131,7 +131,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#FAF9F7] text-neutral-900">
-      <SiteHeader active="map" />
+      <SiteHeader active="map" showMobileNav={false} />
 
       <section className="grid min-h-[calc(100vh-4rem)] grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)_360px]">
         <aside className="hidden border-b border-neutral-200 bg-[#FAF9F7] px-5 py-5 lg:block lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
