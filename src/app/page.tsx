@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
+  X,
 } from "lucide-react";
 import { MapView } from "@/components/map/MapView";
 import { CategoryFilter } from "@/components/search/CategoryFilter";
@@ -41,6 +42,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(MOCK_PLACES[0].id);
   const [viewMode, setViewMode] = useState<ViewMode>("map");
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [savedIds, setSavedIds] = useState<string[]>(["ua-embassy", "nova-skola", "ua-school"]);
 
   const counts = useMemo(() => {
@@ -86,6 +88,7 @@ export default function Home() {
 
   function selectPlace(place: Place) {
     setSelectedId(place.id);
+    setMobilePanelOpen(false);
     if (viewMode === "list" || viewMode === "saved") {
       setViewMode("map");
     }
@@ -109,7 +112,7 @@ export default function Home() {
             </div>
           </button>
 
-          <nav className="hidden items-center rounded-full border border-neutral-200 bg-white p-1 text-sm font-medium text-neutral-600 md:flex">
+          <nav className="hidden items-center rounded-full border border-neutral-200 bg-white p-1 text-sm font-medium text-neutral-600 lg:flex">
             <ModeButton active={viewMode === "map"} onClick={() => setViewMode("map")} icon={<MapIcon size={15} />}>
               Карта
             </ModeButton>
@@ -130,7 +133,11 @@ export default function Home() {
               <Sparkles size={16} />
               Додати місце
             </button>
-            <button className="flex size-10 items-center justify-center rounded-lg border border-neutral-200 bg-white md:hidden">
+            <button
+              type="button"
+              onClick={() => setMobilePanelOpen(true)}
+              className="flex size-10 items-center justify-center rounded-lg border border-neutral-200 bg-white lg:hidden"
+            >
               <Menu size={18} />
             </button>
           </div>
@@ -138,7 +145,7 @@ export default function Home() {
       </header>
 
       <section className="grid min-h-[calc(100vh-4rem)] grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)_360px]">
-        <aside className="border-b border-neutral-200 bg-[#FAF9F7] px-5 py-5 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
+        <aside className="hidden border-b border-neutral-200 bg-[#FAF9F7] px-5 py-5 lg:block lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <div className="space-y-5">
             <div>
               <h1 className="text-3xl font-semibold tracking-normal text-neutral-950">
@@ -213,25 +220,142 @@ export default function Home() {
           </div>
         </aside>
 
-        <section className="relative min-h-[520px] overflow-hidden bg-[#E8E3DA] lg:min-h-0">
-          {viewMode === "list" || viewMode === "saved" ? (
-            <ListCanvas
-              places={visiblePlaces}
-              savedIds={savedIds}
-              onSelectPlace={selectPlace}
-              onToggleSaved={toggleSaved}
-              mode={viewMode}
-            />
-          ) : (
+        <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-[#E8E3DA] lg:min-h-0">
+          <div className="h-[calc(100svh-4rem)] lg:hidden">
             <MapView
               places={visiblePlaces}
               selectedId={selectedPlace?.id}
               onSelectPlace={(place) => setSelectedId(place.id)}
             />
-          )}
+          </div>
+
+          <div className="hidden h-full lg:block">
+            {viewMode === "list" || viewMode === "saved" ? (
+              <ListCanvas
+                places={visiblePlaces}
+                savedIds={savedIds}
+                onSelectPlace={selectPlace}
+                onToggleSaved={toggleSaved}
+                mode={viewMode}
+              />
+            ) : (
+              <MapView
+                places={visiblePlaces}
+                selectedId={selectedPlace?.id}
+                onSelectPlace={(place) => setSelectedId(place.id)}
+              />
+            )}
+          </div>
+
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 space-y-2 p-3 lg:hidden">
+            <div className="pointer-events-auto rounded-lg border border-neutral-200 bg-white/95 p-3 shadow-lg backdrop-blur">
+              <label className="flex h-10 items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3">
+                <Search size={16} className="text-neutral-400" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Пошук місць"
+                  className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400"
+                />
+              </label>
+              <div className="mt-3">
+                <CategoryFilter
+                  categories={CATEGORIES}
+                  activeCategory={activeCategory}
+                  onSelect={handleCategorySelect}
+                  counts={counts}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute inset-x-3 bottom-3 z-20 lg:hidden">
+            {!mobilePanelOpen && (
+              <div className="space-y-2">
+                {selectedPlace && (
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanelOpen(true)}
+                    className="w-full rounded-lg border border-neutral-200 bg-white p-3 text-left shadow-lg"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-neutral-950">{selectedPlace.name}</p>
+                        <p className="mt-1 truncate text-sm text-neutral-500">{selectedPlace.address}</p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-[#C1440E] px-2 py-1 text-xs font-medium text-white">
+                        Деталі
+                      </span>
+                    </div>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setMobilePanelOpen(true)}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-semibold text-white shadow-lg"
+                >
+                  <List size={17} />
+                  Показати {visiblePlaces.length} місць
+                </button>
+              </div>
+            )}
+
+            <div
+              className={[
+                "max-h-[72svh] overflow-hidden rounded-t-2xl border border-neutral-200 bg-[#FAF9F7] shadow-2xl transition-transform duration-300",
+                mobilePanelOpen ? "translate-y-0" : "translate-y-[calc(100%+1rem)]",
+              ].join(" ")}
+            >
+              <div className="flex items-center justify-between border-b border-neutral-200 bg-white px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold text-neutral-950">
+                    {viewMode === "saved" ? "Збережені місця" : "Місця поруч"}
+                  </p>
+                  <p className="text-xs text-neutral-500">{visiblePlaces.length} результатів</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobilePanelOpen(false)}
+                  className="flex size-9 items-center justify-center rounded-lg border border-neutral-200"
+                  aria-label="Закрити список"
+                >
+                  <X size={17} />
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-1 border-b border-neutral-200 bg-white p-2 text-sm font-medium">
+                <MobileModeButton active={viewMode === "map"} onClick={() => setViewMode("map")}>
+                  Карта
+                </MobileModeButton>
+                <MobileModeButton active={viewMode === "list"} onClick={() => setViewMode("list")}>
+                  Список
+                </MobileModeButton>
+                <MobileModeButton active={viewMode === "saved"} onClick={() => setViewMode("saved")}>
+                  Збережені
+                </MobileModeButton>
+              </div>
+              <div className="max-h-[52svh] overflow-y-auto p-3">
+                {visiblePlaces.length > 0 ? (
+                  <div className="space-y-3">
+                    {visiblePlaces.map((place) => (
+                      <PlaceListCard
+                        key={place.id}
+                        place={place}
+                        isSelected={selectedPlace?.id === place.id}
+                        isSaved={savedIds.includes(place.id)}
+                        onSelect={() => selectPlace(place)}
+                        onToggleSaved={() => toggleSaved(place.id)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState mode={viewMode} />
+                )}
+              </div>
+            </div>
+          </div>
         </section>
 
-        <aside className="border-t border-neutral-200 bg-white lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-l lg:border-t-0">
+        <aside className="hidden border-t border-neutral-200 bg-white lg:block lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-l lg:border-t-0">
           {selectedPlace ? (
             <PlaceDetails
               place={selectedPlace}
