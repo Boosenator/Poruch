@@ -48,3 +48,7 @@ input {
 .poruch-map-popup .mapboxgl-popup-tip {
   border-top-color: white;
 }
+
+.mapboxgl-canvas {
+  touch-action: none;
+}

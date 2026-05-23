@@ -55,31 +55,44 @@ export default function Home() {
     return totals;
   }, []);
 
-  const visiblePlaces = useMemo(() => {
+  const filteredPlaces = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return MOCK_PLACES.filter((place) => {
       const matchesCategory = activeCategory === "all" || place.category === activeCategory;
-      const matchesSaved = viewMode !== "saved" || savedIds.includes(place.id);
       const searchable = [place.name, place.address, place.description, ...place.tags]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
-      return matchesCategory && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery));
+      return matchesCategory && (!normalizedQuery || searchable.includes(normalizedQuery));
     });
-  }, [activeCategory, query, savedIds, viewMode]);
+  }, [activeCategory, query]);
+
+  const visiblePlaces = useMemo(() => {
+    if (viewMode !== "saved") {
+      return filteredPlaces;
+    }
+
+    return filteredPlaces.filter((place) => savedIds.includes(place.id));
+  }, [filteredPlaces, savedIds, viewMode]);
 
   const selectedPlace =
-    visiblePlaces.find((place) => place.id === selectedId) ?? visiblePlaces[0] ?? null;
+    filteredPlaces.find((place) => place.id === selectedId) ?? filteredPlaces[0] ?? null;
 
   const verifiedCount = visiblePlaces.filter((place) => place.is_verified).length;
   const freeCount = visiblePlaces.filter((place) => place.is_free).length;
 
   function handleCategorySelect(categoryId: string) {
     setActiveCategory(categoryId);
+    setViewMode("map");
     const nextPlace = MOCK_PLACES.find((place) => categoryId === "all" || place.category === categoryId);
     if (nextPlace) setSelectedId(nextPlace.id);
+  }
+
+  function handleQueryChange(value: string) {
+    setQuery(value);
+    setViewMode("map");
   }
 
   function toggleSaved(placeId: string) {
@@ -179,7 +192,7 @@ export default function Home() {
               <Search size={18} className="text-neutral-400" />
               <input
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => handleQueryChange(event.target.value)}
                 placeholder="Пошук за назвою, адресою або тегом"
                 className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400"
               />
@@ -235,7 +248,7 @@ export default function Home() {
         <section className="relative h-[calc(100svh-4rem)] overflow-hidden bg-[#E8E3DA] lg:h-auto lg:min-h-0">
           <div className="h-[calc(100svh-4rem)] lg:hidden">
             <MapView
-              places={visiblePlaces}
+              places={filteredPlaces}
               selectedId={selectedPlace?.id}
               onSelectPlace={(place) => setSelectedId(place.id)}
             />
@@ -259,13 +272,13 @@ export default function Home() {
             )}
           </div>
 
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-20 space-y-2 p-3 lg:hidden">
+          <div className="pointer-events-none fixed inset-x-0 top-16 z-40 space-y-2 p-3 lg:hidden">
             <div className="pointer-events-auto rounded-lg border border-neutral-200 bg-white/95 p-3 shadow-lg backdrop-blur">
               <label className="flex h-10 items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3">
                 <Search size={16} className="text-neutral-400" />
                 <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                value={query}
+                  onChange={(event) => handleQueryChange(event.target.value)}
                   placeholder="Пошук місць"
                   className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-400"
                 />
@@ -281,7 +294,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 lg:hidden">
+          <div className="pointer-events-none fixed inset-x-3 bottom-3 z-40 lg:hidden">
             {!mobilePanelOpen && (
               <div className="space-y-2">
                 {selectedPlace && (
@@ -307,7 +320,7 @@ export default function Home() {
                   className="pointer-events-auto flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-semibold text-white shadow-lg"
                 >
                   <List size={17} />
-                  Показати {visiblePlaces.length} місць
+                  Показати {filteredPlaces.length} місць
                 </button>
               </div>
             )}
