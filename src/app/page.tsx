@@ -6,6 +6,9 @@ import {
   Check,
   Clock3,
   ExternalLink,
+  HeartHandshake,
+  List,
+  MapIcon,
   MapPin,
   Menu,
   Navigation,
@@ -18,170 +21,10 @@ import {
 import { MapView } from "@/components/map/MapView";
 import { CategoryFilter } from "@/components/search/CategoryFilter";
 import { CATEGORIES } from "@/lib/categories";
+import { MOCK_PLACES } from "@/lib/mock-places";
 import type { Place } from "@/lib/types";
 
-const places: Place[] = [
-  {
-    id: "ua-embassy",
-    name: "Посольство України в Чехії",
-    category: "legal",
-    address: "Charlese de Gaulle 29, Praha 6",
-    lat: 50.1038,
-    lng: 14.3946,
-    phone: "+420 233 342 000",
-    website: "https://czechia.mfa.gov.ua",
-    hours: { today: "09:00-12:00" },
-    languages: ["uk", "cs"],
-    tags: ["документи", "консульство", "офіційно"],
-    photos: [],
-    is_verified: true,
-    is_active: true,
-    is_free: true,
-    views_count: 1254,
-    saves_count: 318,
-    description: "Консульські послуги, оформлення документів і базова навігація з офіційних питань.",
-  },
-  {
-    id: "cic-praha",
-    name: "Centrum pro integraci cizinců",
-    category: "legal",
-    address: "Jeremenkova 5, Praha 4",
-    lat: 50.0479,
-    lng: 14.4246,
-    phone: "+420 296 325 345",
-    website: "https://cicpraha.org",
-    hours: { today: "10:00-17:00" },
-    languages: ["uk", "cs", "en"],
-    tags: ["інтеграція", "право", "безкоштовно"],
-    photos: [],
-    is_verified: true,
-    is_active: true,
-    is_free: true,
-    views_count: 943,
-    saves_count: 221,
-    description: "Безкоштовна юридична та соціальна допомога для іноземців у Празі.",
-  },
-  {
-    id: "nova-skola",
-    name: "Nová škola: курси чеської",
-    category: "language",
-    address: "Ostrovského 253, Praha 5",
-    lat: 50.0692,
-    lng: 14.4021,
-    phone: "+420 257 942 320",
-    website: "https://novaskola.org",
-    hours: { today: "08:30-18:00" },
-    languages: ["uk", "cs"],
-    tags: ["чеська", "курси", "сертифікат"],
-    photos: [],
-    is_verified: true,
-    is_active: true,
-    is_free: false,
-    views_count: 732,
-    saves_count: 147,
-    description: "Курси чеської мови для дорослих та підлітків, групи A1-B2.",
-  },
-  {
-    id: "pediatrician-vinohrady",
-    name: "Педіатрія Виногради",
-    category: "medicine",
-    address: "Vinohrady, Praha 2",
-    lat: 50.075,
-    lng: 14.448,
-    phone: "+420 777 123 456",
-    website: null,
-    hours: { today: "12:00-16:30" },
-    languages: ["uk", "cs"],
-    tags: ["діти", "українською", "прийом"],
-    photos: [],
-    is_verified: true,
-    is_active: true,
-    is_free: false,
-    views_count: 1189,
-    saves_count: 396,
-    description: "Україномовний прийом дітей, профілактичні огляди та консультації для родин.",
-  },
-  {
-    id: "jobs-for-ukraine",
-    name: "Jobs for Ukraine Praha",
-    category: "work",
-    address: "Václavské náměstí 1, Praha 1",
-    lat: 50.081,
-    lng: 14.4277,
-    phone: null,
-    website: "https://jobsforukraine.net",
-    hours: { today: "Онлайн" },
-    languages: ["uk", "cs", "en"],
-    tags: ["робота", "вакансії", "консультації"],
-    photos: [],
-    is_verified: true,
-    is_active: true,
-    is_free: true,
-    views_count: 856,
-    saves_count: 202,
-    description: "Підбір вакансій, ярмарки роботи та консультації щодо працевлаштування.",
-  },
-  {
-    id: "ridne-shop",
-    name: "Крамниця Рідне",
-    category: "shops",
-    address: "Žižkov, Praha 3",
-    lat: 50.0853,
-    lng: 14.4521,
-    phone: "+420 608 987 654",
-    website: null,
-    hours: { today: "09:00-20:00" },
-    languages: ["uk"],
-    tags: ["продукти", "книги", "з України"],
-    photos: [],
-    is_verified: true,
-    is_active: true,
-    is_free: false,
-    views_count: 641,
-    saves_count: 113,
-    description: "Українські продукти, косметика, книжки та дрібні речі для дому.",
-  },
-  {
-    id: "lviv-croissants",
-    name: "Lviv Croissants Praha",
-    category: "cafe",
-    address: "Senovážné náměstí 3, Praha 1",
-    lat: 50.085,
-    lng: 14.432,
-    phone: null,
-    website: null,
-    hours: { today: "08:00-21:00" },
-    languages: ["uk", "cs"],
-    tags: ["кава", "перекус", "центр"],
-    photos: [],
-    is_verified: false,
-    is_active: true,
-    is_free: false,
-    views_count: 421,
-    saves_count: 88,
-    description: "Знайома їжа, кава і швидкі зустрічі поруч із центром Праги.",
-  },
-  {
-    id: "ua-school",
-    name: "Українська недільна школа",
-    category: "community",
-    address: "Vinohrady, Praha 2",
-    lat: 50.072,
-    lng: 14.4418,
-    phone: null,
-    website: null,
-    hours: { today: "Сб 10:00-14:00" },
-    languages: ["uk"],
-    tags: ["діти", "культура", "зустрічі"],
-    photos: [],
-    is_verified: true,
-    is_active: true,
-    is_free: true,
-    views_count: 512,
-    saves_count: 174,
-    description: "Українська мова, культура та спільні заняття для дітей і батьків.",
-  },
-];
+type ViewMode = "map" | "list" | "saved";
 
 const languageLabels: Record<string, string> = {
   uk: "українська",
@@ -196,44 +39,67 @@ function getCategory(categoryId: string) {
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(places[0].id);
+  const [selectedId, setSelectedId] = useState(MOCK_PLACES[0].id);
+  const [viewMode, setViewMode] = useState<ViewMode>("map");
+  const [savedIds, setSavedIds] = useState<string[]>(["ua-embassy", "nova-skola", "ua-school"]);
 
   const counts = useMemo(() => {
-    const totals: Record<string, number> = { all: places.length };
-    places.forEach((place) => {
+    const totals: Record<string, number> = { all: MOCK_PLACES.length };
+    MOCK_PLACES.forEach((place) => {
       totals[place.category] = (totals[place.category] ?? 0) + 1;
     });
     return totals;
   }, []);
 
-  const filteredPlaces = useMemo(() => {
+  const visiblePlaces = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
-    return places.filter((place) => {
+    return MOCK_PLACES.filter((place) => {
       const matchesCategory = activeCategory === "all" || place.category === activeCategory;
+      const matchesSaved = viewMode !== "saved" || savedIds.includes(place.id);
       const searchable = [place.name, place.address, place.description, ...place.tags]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
-      return matchesCategory && (!normalizedQuery || searchable.includes(normalizedQuery));
+      return matchesCategory && matchesSaved && (!normalizedQuery || searchable.includes(normalizedQuery));
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, query, savedIds, viewMode]);
 
   const selectedPlace =
-    filteredPlaces.find((place) => place.id === selectedId) ?? filteredPlaces[0] ?? null;
+    visiblePlaces.find((place) => place.id === selectedId) ?? visiblePlaces[0] ?? null;
+
+  const verifiedCount = visiblePlaces.filter((place) => place.is_verified).length;
+  const freeCount = visiblePlaces.filter((place) => place.is_free).length;
 
   function handleCategorySelect(categoryId: string) {
     setActiveCategory(categoryId);
-    const nextPlace = places.find((place) => categoryId === "all" || place.category === categoryId);
+    const nextPlace = MOCK_PLACES.find((place) => categoryId === "all" || place.category === categoryId);
     if (nextPlace) setSelectedId(nextPlace.id);
+  }
+
+  function toggleSaved(placeId: string) {
+    setSavedIds((current) =>
+      current.includes(placeId) ? current.filter((id) => id !== placeId) : [...current, placeId],
+    );
+  }
+
+  function selectPlace(place: Place) {
+    setSelectedId(place.id);
+    if (viewMode === "list" || viewMode === "saved") {
+      setViewMode("map");
+    }
   }
 
   return (
     <main className="min-h-screen bg-[#FAF9F7] text-neutral-900">
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-[#FAF9F7]/95 backdrop-blur">
         <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setViewMode("map")}
+            className="flex items-center gap-3 text-left"
+          >
             <div className="flex size-10 items-center justify-center rounded-full bg-[#C1440E] text-white">
               <MapPin size={21} />
             </div>
@@ -241,18 +107,24 @@ export default function Home() {
               <p className="text-lg font-semibold leading-tight">Поруч</p>
               <p className="text-xs text-neutral-500">Прага</p>
             </div>
-          </div>
-          <nav className="hidden items-center gap-1 text-sm font-medium text-neutral-600 md:flex">
-            <a className="rounded-full px-3 py-2 text-[#C1440E]" href="#">
+          </button>
+
+          <nav className="hidden items-center rounded-full border border-neutral-200 bg-white p-1 text-sm font-medium text-neutral-600 md:flex">
+            <ModeButton active={viewMode === "map"} onClick={() => setViewMode("map")} icon={<MapIcon size={15} />}>
               Карта
-            </a>
-            <a className="rounded-full px-3 py-2 hover:bg-white" href="#">
+            </ModeButton>
+            <ModeButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={<List size={15} />}>
               Список
-            </a>
-            <a className="rounded-full px-3 py-2 hover:bg-white" href="#">
+            </ModeButton>
+            <ModeButton
+              active={viewMode === "saved"}
+              onClick={() => setViewMode("saved")}
+              icon={<Bookmark size={15} />}
+            >
               Збережені
-            </a>
+            </ModeButton>
           </nav>
+
           <div className="flex items-center gap-2">
             <button className="hidden h-10 items-center gap-2 rounded-lg bg-[#C1440E] px-4 text-sm font-medium text-white transition-colors hover:bg-[#A33A0B] sm:flex">
               <Sparkles size={16} />
@@ -266,16 +138,22 @@ export default function Home() {
       </header>
 
       <section className="grid min-h-[calc(100vh-4rem)] grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)_360px]">
-        <aside className="border-b border-neutral-200 bg-[#FAF9F7] px-5 py-5 lg:border-b-0 lg:border-r">
+        <aside className="border-b border-neutral-200 bg-[#FAF9F7] px-5 py-5 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <div className="space-y-5">
             <div>
               <h1 className="text-3xl font-semibold tracking-normal text-neutral-950">
                 Твій путівник у новому місті
               </h1>
               <p className="mt-2 text-sm leading-6 text-neutral-600">
-                Перевірені ресурси для українців у Чехії: медицина, документи, мова,
-                робота і спільнота.
+                Перевірені ресурси для українців у Чехії: медицина, документи, мова, робота,
+                житло і спільнота.
               </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <Metric value={visiblePlaces.length} label="місць" />
+              <Metric value={verifiedCount} label="перевірено" />
+              <Metric value={freeCount} label="безкоштовно" />
             </div>
 
             <label className="flex h-12 items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 shadow-sm">
@@ -288,6 +166,20 @@ export default function Home() {
               />
             </label>
 
+            <div className="md:hidden">
+              <div className="grid grid-cols-3 rounded-lg border border-neutral-200 bg-white p-1 text-sm font-medium">
+                <MobileModeButton active={viewMode === "map"} onClick={() => setViewMode("map")}>
+                  Карта
+                </MobileModeButton>
+                <MobileModeButton active={viewMode === "list"} onClick={() => setViewMode("list")}>
+                  Список
+                </MobileModeButton>
+                <MobileModeButton active={viewMode === "saved"} onClick={() => setViewMode("saved")}>
+                  Збережені
+                </MobileModeButton>
+              </div>
+            </div>
+
             <CategoryFilter
               categories={CATEGORIES}
               activeCategory={activeCategory}
@@ -297,79 +189,60 @@ export default function Home() {
 
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium text-neutral-800">
-                Знайдено {filteredPlaces.length} місць
+                {viewMode === "saved" ? "Збережені" : "Знайдено"} {visiblePlaces.length} місць
               </span>
               <span className="text-neutral-500">Мок-дані</span>
             </div>
 
-            <div className="space-y-3">
-              {filteredPlaces.map((place) => {
-                const category = getCategory(place.category);
-                const isSelected = selectedPlace?.id === place.id;
-
-                return (
-                  <button
+            {visiblePlaces.length > 0 ? (
+              <div className="space-y-3">
+                {visiblePlaces.map((place) => (
+                  <PlaceListCard
                     key={place.id}
-                    type="button"
-                    onClick={() => setSelectedId(place.id)}
-                    className={[
-                      "w-full rounded-lg border bg-white p-4 text-left shadow-sm transition-all",
-                      isSelected
-                        ? "border-[#C1440E] ring-2 ring-[#C1440E]/10"
-                        : "border-neutral-200 hover:border-[#C1440E]/40",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span
-                        className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-full text-white"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        <MapPin size={17} />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-start justify-between gap-3">
-                          <span className="font-semibold text-neutral-950">{place.name}</span>
-                          {place.is_verified && (
-                            <span className="rounded-full bg-[#C1440E] px-2 py-0.5 text-xs font-medium text-white">
-                              Verified
-                            </span>
-                          )}
-                        </span>
-                        <span className="mt-1 block text-sm text-neutral-500">{place.address}</span>
-                        <span className="mt-3 flex flex-wrap gap-1.5">
-                          {place.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded-md bg-neutral-100 px-2 py-1 text-xs text-neutral-700"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </span>
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    place={place}
+                    isSelected={selectedPlace?.id === place.id}
+                    isSaved={savedIds.includes(place.id)}
+                    onSelect={() => setSelectedId(place.id)}
+                    onToggleSaved={() => toggleSaved(place.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState mode={viewMode} />
+            )}
           </div>
         </aside>
 
         <section className="relative min-h-[520px] overflow-hidden bg-[#E8E3DA] lg:min-h-0">
-          <MapView
-            places={filteredPlaces}
-            selectedId={selectedPlace?.id}
-            onSelectPlace={(place) => setSelectedId(place.id)}
-          />
+          {viewMode === "list" || viewMode === "saved" ? (
+            <ListCanvas
+              places={visiblePlaces}
+              savedIds={savedIds}
+              onSelectPlace={selectPlace}
+              onToggleSaved={toggleSaved}
+              mode={viewMode}
+            />
+          ) : (
+            <MapView
+              places={visiblePlaces}
+              selectedId={selectedPlace?.id}
+              onSelectPlace={(place) => setSelectedId(place.id)}
+            />
+          )}
         </section>
 
-        <aside className="border-t border-neutral-200 bg-white lg:border-l lg:border-t-0">
+        <aside className="border-t border-neutral-200 bg-white lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:border-l lg:border-t-0">
           {selectedPlace ? (
-            <PlaceDetails place={selectedPlace} totalCount={filteredPlaces.length} />
+            <PlaceDetails
+              place={selectedPlace}
+              totalCount={visiblePlaces.length}
+              isSaved={savedIds.includes(selectedPlace.id)}
+              onToggleSaved={() => toggleSaved(selectedPlace.id)}
+            />
           ) : (
             <div className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center text-neutral-400">
               <MapPin size={40} strokeWidth={1.4} />
-              <p className="text-sm">Натисни на маркер, щоб побачити деталі</p>
+              <p className="text-sm">Натисни на маркер або картку, щоб побачити деталі</p>
             </div>
           )}
         </aside>
@@ -378,7 +251,206 @@ export default function Home() {
   );
 }
 
-function PlaceDetails({ place, totalCount }: { place: Place; totalCount: number }) {
+function ModeButton({
+  active,
+  onClick,
+  icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "flex h-9 items-center gap-2 rounded-full px-4 transition-colors",
+        active ? "bg-[#C1440E] text-white" : "hover:bg-neutral-100",
+      ].join(" ")}
+    >
+      {icon}
+      {children}
+    </button>
+  );
+}
+
+function MobileModeButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={["h-9 rounded-md transition-colors", active ? "bg-[#C1440E] text-white" : "text-neutral-600"].join(
+        " ",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Metric({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white px-3 py-2">
+      <p className="text-lg font-semibold text-neutral-950">{value}</p>
+      <p className="text-xs text-neutral-500">{label}</p>
+    </div>
+  );
+}
+
+function PlaceListCard({
+  place,
+  isSelected,
+  isSaved,
+  onSelect,
+  onToggleSaved,
+}: {
+  place: Place;
+  isSelected: boolean;
+  isSaved: boolean;
+  onSelect: () => void;
+  onToggleSaved: () => void;
+}) {
+  const category = getCategory(place.category);
+
+  return (
+    <div
+      className={[
+        "rounded-lg border bg-white p-4 shadow-sm transition-all",
+        isSelected ? "border-[#C1440E] ring-2 ring-[#C1440E]/10" : "border-neutral-200 hover:border-[#C1440E]/40",
+      ].join(" ")}
+    >
+      <div className="flex items-start gap-3">
+        <button
+          type="button"
+          onClick={onSelect}
+          className="mt-1 flex size-9 shrink-0 items-center justify-center rounded-full text-white"
+          style={{ backgroundColor: category.color }}
+          aria-label={place.name}
+        >
+          <MapPin size={17} />
+        </button>
+        <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
+          <span className="flex items-start justify-between gap-3">
+            <span className="font-semibold text-neutral-950">{place.name}</span>
+            <span className="text-xs text-neutral-400">{place.distance_label}</span>
+          </span>
+          <span className="mt-1 block text-sm text-neutral-500">{place.address}</span>
+          <span className="mt-2 flex items-center gap-1 text-xs text-neutral-500">
+            <Star className="text-amber-400" size={13} fill="currentColor" />
+            {place.rating?.toFixed(1)} · {place.review_count} відгуків
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={onToggleSaved}
+          className={[
+            "flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors",
+            isSaved ? "border-[#C1440E] bg-[#FDF0EB] text-[#C1440E]" : "border-neutral-200 text-neutral-500",
+          ].join(" ")}
+          aria-label={isSaved ? "Прибрати зі збережених" : "Зберегти місце"}
+        >
+          <Bookmark size={16} fill={isSaved ? "currentColor" : "none"} />
+        </button>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5 pl-12">
+        {place.is_verified && (
+          <span className="rounded-full bg-[#C1440E] px-2 py-0.5 text-xs font-medium text-white">Verified</span>
+        )}
+        {place.is_free && <span className="rounded-md bg-emerald-50 px-2 py-1 text-xs text-emerald-700">безкоштовно</span>}
+        {place.tags.slice(0, 3).map((tag) => (
+          <span key={tag} className="rounded-md bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ListCanvas({
+  places,
+  savedIds,
+  onSelectPlace,
+  onToggleSaved,
+  mode,
+}: {
+  places: Place[];
+  savedIds: string[];
+  onSelectPlace: (place: Place) => void;
+  onToggleSaved: (placeId: string) => void;
+  mode: ViewMode;
+}) {
+  if (places.length === 0) {
+    return (
+      <div className="flex h-full min-h-[520px] items-center justify-center p-6">
+        <EmptyState mode={mode} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full min-h-[520px] overflow-y-auto bg-[#FAF9F7] p-5">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium uppercase text-neutral-500">{mode === "saved" ? "Збережені" : "Список"}</p>
+          <h2 className="text-2xl font-semibold text-neutral-950">Місця у Празі</h2>
+        </div>
+        <p className="text-sm text-neutral-500">{places.length} результатів</p>
+      </div>
+      <div className="grid gap-3 xl:grid-cols-2">
+        {places.map((place) => (
+          <PlaceListCard
+            key={place.id}
+            place={place}
+            isSelected={false}
+            isSaved={savedIds.includes(place.id)}
+            onSelect={() => onSelectPlace(place)}
+            onToggleSaved={() => onToggleSaved(place.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ mode }: { mode: ViewMode }) {
+  return (
+    <div className="rounded-lg border border-neutral-200 bg-white p-6 text-center shadow-sm">
+      <HeartHandshake className="mx-auto text-[#C1440E]" size={28} />
+      <p className="mt-3 font-semibold text-neutral-950">
+        {mode === "saved" ? "Ще немає збережених місць" : "Нічого не знайдено"}
+      </p>
+      <p className="mt-1 text-sm leading-6 text-neutral-500">
+        {mode === "saved"
+          ? "Натисни на іконку закладки біля місця, щоб швидко повернутися до нього пізніше."
+          : "Спробуй змінити категорію або пошуковий запит."}
+      </p>
+    </div>
+  );
+}
+
+function PlaceDetails({
+  place,
+  totalCount,
+  isSaved,
+  onToggleSaved,
+}: {
+  place: Place;
+  totalCount: number;
+  isSaved: boolean;
+  onToggleSaved: () => void;
+}) {
   const category = getCategory(place.category);
 
   return (
@@ -412,14 +484,20 @@ function PlaceDetails({ place, totalCount }: { place: Place; totalCount: number 
             </div>
             <div className="mt-2 flex items-center gap-1 text-sm">
               <Star className="text-amber-400" size={15} fill="currentColor" />
-              <span className="font-medium">4.8</span>
-              <span className="text-neutral-400">
-                ({Math.max(7, Math.round(place.saves_count / 8))} відгуків)
-              </span>
+              <span className="font-medium">{place.rating?.toFixed(1) ?? "4.8"}</span>
+              <span className="text-neutral-400">({place.review_count ?? 0} відгуків)</span>
             </div>
           </div>
-          <button className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-neutral-200 hover:bg-neutral-100">
-            <Bookmark size={18} />
+          <button
+            type="button"
+            onClick={onToggleSaved}
+            className={[
+              "flex size-10 shrink-0 items-center justify-center rounded-lg border transition-colors",
+              isSaved ? "border-[#C1440E] bg-[#FDF0EB] text-[#C1440E]" : "border-neutral-200 hover:bg-neutral-100",
+            ].join(" ")}
+            aria-label={isSaved ? "Прибрати зі збережених" : "Зберегти місце"}
+          >
+            <Bookmark size={18} fill={isSaved ? "currentColor" : "none"} />
           </button>
         </div>
 
@@ -436,6 +514,7 @@ function PlaceDetails({ place, totalCount }: { place: Place; totalCount: number 
         </div>
 
         <div className="mt-5 flex flex-wrap gap-1.5">
+          {place.is_free && <span className="rounded-md bg-emerald-50 px-2 py-1 text-xs text-emerald-700">безкоштовно</span>}
           {place.tags.map((tag) => (
             <span key={tag} className="rounded-md bg-neutral-100 px-2 py-1 text-xs text-neutral-700">
               {tag}

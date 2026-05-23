@@ -23,4 +23,7 @@ export type Place = {
   description?: string | null;
   city?: string;
   google_maps_url?: string | null;
+  rating?: number;
+  review_count?: number;
+  distance_label?: string;
 };

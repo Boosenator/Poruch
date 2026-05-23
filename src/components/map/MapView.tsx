@@ -1,6 +1,6 @@
 "use client";
 
-import Map, { Marker, NavigationControl } from "react-map-gl/mapbox";
+import Map, { Marker, NavigationControl, Popup } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { MapPin } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
@@ -19,6 +19,7 @@ type MapViewProps = {
 
 export function MapView({ places, selectedId, onSelectPlace }: MapViewProps) {
   const hasToken = Boolean(process.env.NEXT_PUBLIC_MAPBOX_TOKEN);
+  const selectedPlace = places.find((place) => place.id === selectedId);
 
   if (!hasToken) {
     return (
@@ -46,6 +47,27 @@ export function MapView({ places, selectedId, onSelectPlace }: MapViewProps) {
       attributionControl={false}
     >
       <NavigationControl position="top-right" />
+
+      {selectedPlace && (
+        <Popup
+          longitude={selectedPlace.lng}
+          latitude={selectedPlace.lat}
+          anchor="top"
+          closeButton={false}
+          closeOnClick={false}
+          offset={16}
+          className="poruch-map-popup"
+        >
+          <button
+            type="button"
+            onClick={() => onSelectPlace(selectedPlace)}
+            className="max-w-56 text-left"
+          >
+            <p className="text-sm font-semibold text-neutral-950">{selectedPlace.name}</p>
+            <p className="mt-1 text-xs text-neutral-500">{selectedPlace.address}</p>
+          </button>
+        </Popup>
+      )}
 
       {places.map((place) => {
         const category = CATEGORIES.find((item) => item.id === place.category) ?? CATEGORIES[0];
