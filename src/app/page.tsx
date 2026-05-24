@@ -531,10 +531,14 @@ function MobileCategoryFilter({
   onSelect: (categoryId: string) => void;
   counts: Record<string, number>;
 }) {
+  const visibleCategories = categories.filter(
+    (category) => category.id === "all" || (counts[category.id] ?? 0) > 0,
+  );
+
   return (
     <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       <div className="flex w-max gap-2">
-        {categories.map((category) => {
+        {visibleCategories.map((category) => {
           const isActive = category.id === activeCategory;
 
           return (

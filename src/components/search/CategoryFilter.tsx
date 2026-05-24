@@ -15,10 +15,14 @@ export function CategoryFilter({
   onSelect,
   counts,
 }: CategoryFilterProps) {
+  const visibleCategories = categories.filter(
+    (category) => category.id === "all" || (counts[category.id] ?? 0) > 0,
+  );
+
   return (
-    <div className="-mx-5 overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="flex w-max gap-2 py-1">
-        {categories.map((category) => {
+    <div className="overflow-hidden">
+      <div className="flex flex-wrap gap-2 py-1">
+        {visibleCategories.map((category) => {
           const isActive = category.id === activeCategory;
 
           return (
@@ -27,7 +31,7 @@ export function CategoryFilter({
               type="button"
               onClick={() => onSelect(category.id)}
               className={[
-                "flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
+                "flex h-10 max-w-full items-center gap-2 rounded-full px-4 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-[#C1440E] text-white"
                   : "border border-neutral-200 bg-white text-neutral-800 hover:border-[#C1440E]/40",
